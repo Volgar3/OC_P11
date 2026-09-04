@@ -2,4 +2,4 @@ env
 .Python
 .envrc
 __pycache__
-.docs
+docs

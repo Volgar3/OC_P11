@@ -32,10 +32,10 @@ def findClubByEmail(clubs, email):
 @app.route('/showSummary',methods=['POST'])
 def showSummary():
     club = findClubByEmail(clubs, request.form['email'])
-    if club is None:
+    if not club:
         flash("Sorry, that email wasn't found.")
         return render_template('index.html')
-    return render_template('welcome.html',club=club,competitions=competitions)
+    return render_template('welcome.html', club=club, competitions=competitions)
 
 
 @app.route('/book/<competition>/<club>')

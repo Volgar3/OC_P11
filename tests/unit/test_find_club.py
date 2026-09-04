@@ -16,7 +16,7 @@ def test_returns_matching_club_when_email_exists():
 
 @pytest.mark.parametrize("email", [
     "inconnu@example.com",  # email inconnu mais bien formé
-    "banane",                # format invalide (la validation HTML côté navigateur
+    "banane",                # format invalide (la validation HTML côté navigateur)
 ])
 def test_returns_none_when_no_club_matches(email):
     assert findClubByEmail(CLUBS, email) is None

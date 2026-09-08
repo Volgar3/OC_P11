@@ -58,3 +58,47 @@ def test_purchase_allowed_when_places_equal_available_points(client):
 
     assert "Great-booking complete!" in page_text
     assert "Points available: 0" in page_text
+
+
+# ==========================
+# Issue #4 : max 12 places par compétition
+# ==========================
+#
+# Simply Lift a 13 points (assez pour 13 places) : ça isole bien la règle des
+# 12 places, indépendamment de la vérification des points (issue #2).
+#
+# Contrat attendu :
+# - Message d'erreur si > 12 places : "Sorry, you cannot book more than 12
+#   places for a competition."
+
+
+def test_purchase_rejected_when_requesting_more_than_12_places(client):
+    """13 places demandées (Simply Lift a pourtant 13 points) doit être refusé."""
+    response = client.post(
+        "/purchasePlaces",
+        data={"competition": "Fall Classic", "club": "Simply Lift", "places": "13"},
+    )
+
+    assert response.status_code == 200
+    page_text = html.unescape(response.get_data(as_text=True))
+
+    assert "Great-booking complete!" not in page_text
+    assert "Sorry, you cannot book more than 12 places for a competition." in page_text
+    # Aucun effet de bord : ni points ni places de la compétition ne doivent bouger.
+    assert "Points available: 13" in page_text
+    assert "Number of Places: 13" in page_text
+
+
+def test_purchase_allowed_when_requesting_exactly_12_places(client):
+    """Réserver exactement 12 places doit réussir (limite incluse)."""
+    response = client.post(
+        "/purchasePlaces",
+        data={"competition": "Fall Classic", "club": "Simply Lift", "places": "12"},
+    )
+
+    assert response.status_code == 200
+    page_text = html.unescape(response.get_data(as_text=True))
+
+    assert "Great-booking complete!" in page_text
+    assert "Points available: 1" in page_text
+    assert "Number of Places: 1" in page_text

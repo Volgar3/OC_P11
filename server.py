@@ -59,6 +59,9 @@ def calculate_remaining_points(club_points, places_required):
     return club_points - places_required
 
 
+def is_places_request_valid(places_required, max_places=12):
+    return places_required <= max_places
+
 @app.route("/purchasePlaces", methods=["POST"])
 def purchase_places():
     competition = [c for c in competitions if c["name"] == request.form["competition"]][0]
@@ -68,6 +71,9 @@ def purchase_places():
     if remaining_points is None:
         flash("Sorry, you don't have enough points for that many places.")
         flash("Please, remake your request")
+        return render_template("welcome.html", club=club, competitions=competitions)
+    elif not is_places_request_valid(places_required):
+        flash("Sorry, you cannot book more than 12 places for a competition.")
         return render_template("welcome.html", club=club, competitions=competitions)
     else:
         competition["numberOfPlaces"] = int(competition["numberOfPlaces"]) - places_required

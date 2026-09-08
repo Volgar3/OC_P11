@@ -1,0 +1,12 @@
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle (erreurs)
+    "W",   # pycodestyle (warnings)
+    "F",   # pyflakes (imports inutilisés, variables non définies...)
+    "N",   # pep8-naming (snake_case, PascalCase...)
+    "I",   # isort (tri des imports)
+    "UP",  # pyupgrade (syntaxe Python moderne)
+]

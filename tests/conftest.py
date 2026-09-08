@@ -9,12 +9,12 @@ def client():
     depuis les fichiers JSON avant chaque test.
 
     Important : server.py charge `clubs` et `competitions` une seule fois au
-    démarrage de l'app (variables de module). Certaines routes (ex: purchasePlaces)
+    démarrage de l'app (variables de module). Certaines routes (ex: purchase_places)
     modifient ces données en mémoire. Sans ce fixture, un test pourrait laisser
     des données modifiées qui fausseraient le test suivant.
     """
-    server.clubs = server.loadClubs()
-    server.competitions = server.loadCompetitions()
+    server.clubs = server.load_clubs()
+    server.competitions = server.load_competitions()
 
     # Volontairement PAS de TESTING=True : on veut que Flask catch les
     # exceptions non gérées et renvoie une vraie réponse 500, comme en

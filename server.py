@@ -53,6 +53,13 @@ def book(competition, club):
 
     return render_template("booking.html", club=found_club, competition=found_competition)
 
+def calculate_remaining_places(competition_places, places_required):
+    """Renvoie le solde de points restant, ou None si trop de place prise par rapport
+    aux nombres de places disponible"""
+    if places_required > competition_places:
+        return None
+    return  competition_places - places_required
+
 
 def calculate_remaining_points(club_points, places_required):
     """Renvoie le solde de points restant, ou None si pas assez de points disponibles."""
@@ -89,11 +96,16 @@ def purchase_places():
         flash("Sorry, you cannot book a place for a competition that has already taken place.")
         return render_template("welcome.html", club=club, competitions=competitions)
 
+    remaining_places = calculate_remaining_places(
+        int(competition["numberOfPlaces"]), places_required
+    )
+    if remaining_places is None:
+        flash("Sorry, there are not enough places available for this competition.")
+        return render_template("welcome.html", club=club, competitions=competitions)
 
-    else:
-        competition["numberOfPlaces"] = int(competition["numberOfPlaces"]) - places_required
-        club["points"] = remaining_points
-        flash("Great-booking complete!")
+    competition["numberOfPlaces"] = remaining_places
+    club["points"] = remaining_points
+    flash("Great-booking complete!")
     return render_template("welcome.html", club=club, competitions=competitions)
 
 

@@ -15,6 +15,8 @@ Contrat attendu par ces tests (à respecter dans le fix) :
 """
 import html
 
+import server
+
 
 def test_purchase_rejected_when_not_enough_points(client):
     """Iron Temple a 4 points ; réserver 5 places doit être refusé, sans effet de bord."""
@@ -131,3 +133,56 @@ def test_purchase_rejected_for_past_competition(client):
     # Aucun effet de bord.
     assert "Points available: 13" in page_text
     assert "Number of Places: 13" in page_text
+
+
+# ==========================
+# Issue #282 : pas plus de places que ce qui est disponible pour la compétition
+# ==========================
+#
+# Les compétitions existantes (25 et 13 places) sont trop grandes pour isoler
+# cette règle des autres (max 12, points) : on injecte une compétition
+# fictive avec peu de places disponibles.
+#
+# Contrat attendu :
+# - Message d'erreur : "Sorry, there are not enough places available for
+#   this competition."
+
+
+def test_purchase_rejected_when_not_enough_places_available(client):
+    """Seulement 3 places dispo ; en demander 5 doit être refusé (points/marge suffisants)."""
+    server.competitions.append(
+        {"name": "Small Competition", "date": "2099-01-01 00:00:00", "numberOfPlaces": "3"}
+    )
+
+    response = client.post(
+        "/purchasePlaces",
+        data={"competition": "Small Competition", "club": "Simply Lift", "places": "5"},
+    )
+
+    assert response.status_code == 200
+    page_text = html.unescape(response.get_data(as_text=True))
+
+    assert "Great-booking complete!" not in page_text
+    assert "Sorry, there are not enough places available for this competition." in page_text
+    # Aucun effet de bord.
+    assert "Points available: 13" in page_text
+    assert "Number of Places: 3" in page_text
+
+
+def test_purchase_allowed_when_places_required_equals_available(client):
+    """Réserver exactement le nombre de places disponibles doit réussir (limite incluse)."""
+    server.competitions.append(
+        {"name": "Exact Fit Competition", "date": "2099-01-01 00:00:00", "numberOfPlaces": "5"}
+    )
+
+    response = client.post(
+        "/purchasePlaces",
+        data={"competition": "Exact Fit Competition", "club": "Simply Lift", "places": "5"},
+    )
+
+    assert response.status_code == 200
+    page_text = html.unescape(response.get_data(as_text=True))
+
+    assert "Great-booking complete!" in page_text
+    assert "Points available: 8" in page_text
+    assert "Number of Places: 0" in page_text

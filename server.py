@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 
@@ -45,11 +46,12 @@ def show_summary():
 def book(competition, club):
     found_club = [c for c in clubs if c["name"] == club][0]
     found_competition = [c for c in competitions if c["name"] == competition][0]
-    if found_club and found_competition:
-        return render_template("booking.html", club=found_club, competition=found_competition)
-    else:
-        flash("Something went wrong-please try again")
-        return render_template("welcome.html", club=club, competitions=competitions)
+
+    if not is_competition_in_the_future(found_competition["date"]):
+        flash("Sorry, you cannot book a place for a competition that has already taken place.")
+        return render_template("welcome.html", club=found_club, competitions=competitions)
+
+    return render_template("booking.html", club=found_club, competition=found_competition)
 
 
 def calculate_remaining_points(club_points, places_required):
@@ -62,19 +64,32 @@ def calculate_remaining_points(club_points, places_required):
 def is_places_request_valid(places_required, max_places=12):
     return places_required <= max_places
 
+def is_competition_in_the_future(competition_date):
+    actual_date = datetime.now()
+    competition_date = datetime.strptime(competition_date, "%Y-%m-%d %H:%M:%S")
+    return actual_date < competition_date
+
 @app.route("/purchasePlaces", methods=["POST"])
 def purchase_places():
     competition = [c for c in competitions if c["name"] == request.form["competition"]][0]
     club = [c for c in clubs if c["name"] == request.form["club"]][0]
     places_required = int(request.form["places"])
     remaining_points = calculate_remaining_points(int(club["points"]), places_required)
+
     if remaining_points is None:
         flash("Sorry, you don't have enough points for that many places.")
         flash("Please, remake your request")
         return render_template("welcome.html", club=club, competitions=competitions)
+
     elif not is_places_request_valid(places_required):
         flash("Sorry, you cannot book more than 12 places for a competition.")
         return render_template("welcome.html", club=club, competitions=competitions)
+
+    elif not is_competition_in_the_future(competition["date"]):
+        flash("Sorry, you cannot book a place for a competition that has already taken place.")
+        return render_template("welcome.html", club=club, competitions=competitions)
+
+
     else:
         competition["numberOfPlaces"] = int(competition["numberOfPlaces"]) - places_required
         club["points"] = remaining_points

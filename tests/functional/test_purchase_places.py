@@ -36,7 +36,7 @@ def test_purchase_places_deducts_points_when_enough_available(client):
     """Simply Lift a 13 points ; réserver 5 places doit réussir et déduire les points."""
     response = client.post(
         "/purchasePlaces",
-        data={"competition": "Fall Classic", "club": "Simply Lift", "places": "5"},
+        data={"competition": "Spring Festival", "club": "Simply Lift", "places": "5"},
     )
 
     assert response.status_code == 200
@@ -93,7 +93,7 @@ def test_purchase_allowed_when_requesting_exactly_12_places(client):
     """Réserver exactement 12 places doit réussir (limite incluse)."""
     response = client.post(
         "/purchasePlaces",
-        data={"competition": "Fall Classic", "club": "Simply Lift", "places": "12"},
+        data={"competition": "Spring Festival", "club": "Simply Lift", "places": "12"},
     )
 
     assert response.status_code == 200
@@ -101,4 +101,33 @@ def test_purchase_allowed_when_requesting_exactly_12_places(client):
 
     assert "Great-booking complete!" in page_text
     assert "Points available: 1" in page_text
-    assert "Number of Places: 1" in page_text
+    assert "Number of Places: 13" in page_text
+
+
+# ==========================
+# Issue #5 : pas de réservation sur une compétition passée
+# ==========================
+#
+# Vérification défensive : même en contournant /book (ex: requête directe
+# type curl/Postman), /purchasePlaces ne doit jamais confirmer une
+# réservation sur une compétition déjà passée.
+
+
+def test_purchase_rejected_for_past_competition(client):
+    """Fall Classic est daté de 2025 (passé) : la réservation doit être refusée."""
+    response = client.post(
+        "/purchasePlaces",
+        data={"competition": "Fall Classic", "club": "Simply Lift", "places": "1"},
+    )
+
+    assert response.status_code == 200
+    page_text = html.unescape(response.get_data(as_text=True))
+
+    assert "Great-booking complete!" not in page_text
+    assert (
+        "Sorry, you cannot book a place for a competition that has already taken place."
+        in page_text
+    )
+    # Aucun effet de bord.
+    assert "Points available: 13" in page_text
+    assert "Number of Places: 13" in page_text

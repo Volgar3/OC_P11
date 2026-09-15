@@ -25,7 +25,7 @@ clubs = load_clubs()
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", clubs=clubs)
 
 
 def find_club_by_email(clubs, email):
@@ -109,7 +109,9 @@ def purchase_places():
     return render_template("welcome.html", club=club, competitions=competitions)
 
 
-# TODO: Add route for points display
+@app.route("/points")
+def points_board():
+    return render_template("points.html", clubs=clubs)
 
 
 @app.route("/logout")

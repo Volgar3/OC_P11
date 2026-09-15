@@ -3,6 +3,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GUDLFT Registration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>Welcome to the GUDLFT Registration Portal!</h1>
@@ -23,5 +24,23 @@
         <input type="email" name="email" id=""/>
         <button type="submit">Enter</button>
     </form>
+
+    <h2>Clubs Points Board</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Club</th>
+                <th>Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for club in clubs %}
+            <tr>
+                <td>{{club['name']}}</td>
+                <td>{{club['points']}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>

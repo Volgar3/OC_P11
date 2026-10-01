@@ -3,3 +3,6 @@ env
 .envrc
 __pycache__
 docs
+rapport_performance*
+htmlcov
+.coverage
